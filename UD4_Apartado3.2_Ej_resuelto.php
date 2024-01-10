@@ -1,4 +1,6 @@
 <?php
+require 'util.php';
+
 // Si el usuario no se ha autentificado, pedimos las credenciales
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
     header("WWW-Authenticate: Basic realm='Contenido restringido'");
@@ -41,7 +43,7 @@ if (!isset($_SESSION['usuario'])) { //Conexión a la base de datos proyecto.
     }
     $stmt = null;
     $conProyecto = null; // Si las credenciales fueron correctas creo la session del usuario con su nombre
-   
+
     $_SESSION['usuario'] = $_SERVER['PHP_AUTH_USER'];
     //Para poner el formato fecha en castellano y recuperar fecha y hora de acceso
 }
@@ -61,38 +63,8 @@ else {
     //             date_timestamp_get($ahora)
     //         );
 
-    //++ i18n
-    //Para trabajar con el módulo de internacionalización
-    //Modificar  fichero C:\xampp\php\php.ini descomentando (quitando ;) a la línea:
-    //extension=intl
-    // Comprobar que el resultado de phpinfo() tiene un apartado de intl
-    $locale = "es_ES";
-    $timezone =  'Europe/Madrid';
-    //Creamos un objeto DataTimeInmutable con la fecha y hora actuales. 
-    //(DataTimeInmutable no cambia la fecha original y crea un nuevo objeto si se llama a modify. Ejemplo en //https://stackoverflow.com/questions/67536245/datetimeimmutable-vs-datetime)
-    $ahora_dti = new DateTimeImmutable();
-    //Creamos un objeto IntlDateFormatter para un locale dado, con un formato de fecha, formato de hora, timezone y el calendario gregoriano
-    $fmt = new IntlDateFormatter(
-        $locale,
-        //https://www.php.net/manual/en/class.intldateformatter.php#intl.intldateformatter-constants
-        IntlDateFormatter::FULL,  //dateType
-        IntlDateFormatter::FULL,  //timeType
-        $timezone,
-        IntlDateFormatter::GREGORIAN
-    );
-    //También se pueden obtener partes de una fecha a través de un patrón
-    //Los posibles patrones se pueden consultar en https://unicode-org.github.io/icu/userguide/format_parse/datetime/
-    $dia_semana = $fmt->formatObject($ahora_dti, "EEEE", $locale);
-    $mes = $fmt->formatObject($ahora_dti, "MMMM", $locale);
-    $diaSemana = $fmt->formatObject($ahora_dti, "EEEE", $locale);
-    $dia = $fmt->formatObject($ahora_dti, "dd", $locale);
-    $ano = $fmt->formatObject($ahora_dti, "y", $locale);
-    $hora_2digitos = $fmt->formatObject($ahora_dti, "HH", $locale);
-    $min_2digitos = $fmt->formatObject($ahora_dti, "mm", $locale);
-    $segundos_2digitos =  $fmt->formatObject($ahora_dti, "ss", $locale);
-
-    $fecha = sprintf("<p>Tu última visita fue el %s, %s de %s de %s a las %s:%s:%s</p>", $dia_semana, $dia, $mes, $ano, $hora_2digitos, $min_2digitos, $segundos_2digitos);
-
+    //en util.php
+    $fecha = crear_string_from_fecha();
 
     //Comprobamos si se ha enviado el formulario que limpia el registro
     if (isset($_POST['limpiar'])) {
@@ -114,41 +86,41 @@ else {
 
 <body style="background:gainsboro">
     <h4 class="mt-3 text-center font-weight-bold">Ejercicio Apartado 3.2</h4>
-        <div class='container mt-3'>
-            <div class='row'>
-                <div class='col-md-4 font-weight-bold'>
-                    Nombre Usuario:
-                </div>
-                <div class='col-md-4'>
-                    <?php echo $_SERVER['PHP_AUTH_USER']; ?>
-                </div>
+    <div class='container mt-3'>
+        <div class='row'>
+            <div class='col-md-4 font-weight-bold'>
+                Nombre Usuario:
             </div>
-            <div class='row'>
-                <div class='col-md-4 font-weight-bold'>
-                    Password Usuario (sha256):
-                </div>
-                <div class='col-md-4'>
-                    <?php echo                                     hash('sha256', $_SERVER['PHP_AUTH_PW']); ?>
-                </div>
+            <div class='col-md-4'>
+                <?php echo $_SERVER['PHP_AUTH_USER']; ?>
             </div>
-            <?php
-            if (!isset($_SESSION['visita'])) {
-                echo "<p class='text-success font-weight-bold mt-3'>Bienvenido, es tu
-primera Visita.</p>";
-            } else {
-                echo "<p class='text-success font-weight-bold mt-3'>Tus anteriores
-visitas han sido: </p><ul>";
-                foreach ($_SESSION['visita'] as $k => $v) {
-                    echo "<li>$v</li>";
-                }
-                echo "</ul>";
-            }
-            ?>
-            <form name='vaciar' action='<?php echo $_SERVER['PHP_SELF']; ?>' method='post'>
-                <input type='submit' name='limpiar' value='Limpiar registro' class="btn
-btn-warning">
-            </form>
         </div>
+        <div class='row'>
+            <div class='col-md-4 font-weight-bold'>
+                Password Usuario (sha256):
+            </div>
+            <div class='col-md-4'>
+                <?php echo                                     hash('sha256', $_SERVER['PHP_AUTH_PW']); ?>
+            </div>
+        </div>
+        <?php
+        if (!isset($_SESSION['visita'])) {
+            echo "<p class='text-success font-weight-bold mt-3'>Bienvenido, es tu
+primera Visita.</p>";
+        } else {
+            echo "<p class='text-success font-weight-bold mt-3'>Tus anteriores
+visitas han sido: </p><ul>";
+            foreach ($_SESSION['visita'] as $k => $v) {
+                echo "<li>$v</li>";
+            }
+            echo "</ul>";
+        }
+        ?>
+        <form name='vaciar' action='<?php echo $_SERVER['PHP_SELF']; ?>' method='post'>
+            <input type='submit' name='limpiar' value='Limpiar registro' class="btn
+btn-warning">
+        </form>
+    </div>
 </body>
 
 </html>
